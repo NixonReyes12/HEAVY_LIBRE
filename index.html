@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>Hevy</title>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+
+<!-- ── TOAST ── -->
+<div id="toast" class="toast"></div>
+
+<!-- ── PR BADGE (flash on new personal record) ── -->
+<div id="pr-banner" class="pr-banner hidden">
+  <span class="pr-icon">🏆</span>
+  <span id="pr-text">¡Nuevo récord personal!</span>
+</div>
+
+<!-- ── REST TIMER ── -->
+<div id="rest-overlay" class="rest-overlay hidden">
+  <div class="rest-bg" onclick="App.skipRest()"></div>
+  <div class="rest-modal">
+    <p class="rest-label">DESCANSO</p>
+    <div class="rest-ring-container">
+      <svg class="rest-svg" viewBox="0 0 140 140">
+        <circle class="ring-track" cx="70" cy="70" r="60"/>
+        <circle id="ring-arc"  cx="70" cy="70" r="60" class="ring-arc"/>
+      </svg>
+      <div class="rest-center">
+        <span id="rest-num" class="rest-num">90</span>
+        <span class="rest-sec">seg</span>
+      </div>
+    </div>
+    <div class="rest-actions">
+      <button class="rest-btn-minus" onclick="App.addRestTime(-15)">−15</button>
+      <button class="rest-btn-skip"  onclick="App.skipRest()">Saltar</button>
+      <button class="rest-btn-plus"  onclick="App.addRestTime(+15)">+15</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ APP ══════════ -->
+<div id="app">
+
+  <!-- TOP BAR (dynamic) -->
+  <header class="topbar" id="topbar">
+    <div class="topbar-left">
+      <span class="topbar-title" id="topbar-title">Hevy</span>
+    </div>
+    <div class="topbar-right" id="topbar-right">
+      <button class="tb-btn" onclick="App.openSettings()">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- PAGES -->
+  <main id="pages">
+
+    <!-- ══ PERFIL ══ -->
+    <section id="page-profile" class="page active">
+      <!-- Profile header -->
+      <div class="profile-header">
+        <div class="avatar" id="profile-avatar">H</div>
+        <div class="profile-info">
+          <h1 class="profile-name" id="profile-name">Atleta</h1>
+          <p class="profile-sub" id="profile-handle">@usuario</p>
+        </div>
+        <button class="tb-btn" onclick="App.openEditProfile()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+      </div>
+
+      <!-- Stats strip -->
+      <div class="stats-strip">
+        <div class="stat-item">
+          <span class="stat-n" id="stat-sessions">0</span>
+          <span class="stat-l">Sesiones</span>
+        </div>
+        <div class="stat-sep"></div>
+        <div class="stat-item">
+          <span class="stat-n" id="stat-volume">0</span>
+          <span class="stat-l">Ton. (kg)</span>
+        </div>
+        <div class="stat-sep"></div>
+        <div class="stat-item">
+          <span class="stat-n" id="stat-streak">0</span>
+          <span class="stat-l">Racha sem.</span>
+        </div>
+      </div>
+
+      <!-- 7-day activity dots -->
+      <div class="section-card">
+        <div class="sc-header">
+          <span class="sc-title">Actividad — últimos 7 días</span>
+        </div>
+        <div id="activity-dots" class="activity-dots"></div>
+      </div>
+
+      <!-- Calendar heatmap teaser -->
+      <div class="section-card clickable" onclick="App.openCalendar()">
+        <div class="sc-header">
+          <span class="sc-title">Calendario</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+        <div id="mini-cal" class="mini-cal"></div>
+      </div>
+
+      <!-- Muscle distribution -->
+      <div class="section-card">
+        <div class="sc-header">
+          <span class="sc-title">Distribución muscular</span>
+          <span class="sc-sub" id="muscle-range-label">Últimos 7 días</span>
+        </div>
+        <div class="muscle-wrap">
+          <div id="muscle-svg-wrap" class="muscle-body-svg">
+            <!-- SVG body silhouette with colored regions -->
+            <svg id="body-svg" viewBox="0 0 160 320" xmlns="http://www.w3.org/2000/svg">
+              <!-- Head -->
+              <ellipse cx="80" cy="28" rx="22" ry="26" fill="#1e1e2e" stroke="#333" stroke-width="1"/>
+              <!-- Neck -->
+              <rect x="72" y="50" width="16" height="14" rx="4" fill="#1e1e2e" stroke="#333" stroke-width="1"/>
+              <!-- Chest/Pecho -->
+              <path id="body-pecho" d="M42 64 Q55 58 80 60 Q105 58 118 64 L115 100 Q100 108 80 110 Q60 108 45 100 Z" fill="#1e1e2e" stroke="#333" stroke-width="1" class="muscle-region" data-muscle="Pecho"/>
+              <!-- Shoulders/Hombros -->
+              <ellipse id="body-hombro-l" cx="37" cy="78" rx="16" ry="20" fill="#1e1e2e" stroke="#333" stroke-width="1" class="muscle-region" data-muscle="Hombros"/>
+              <ellipse id="body-hombro-r" cx="123" cy="78" rx="16" ry="20" fill="#1e1e2e" stroke="#333" stroke-width="1" class="muscle-region" data-muscle="Hombros"/>
+              <!-- Arms/Brazos -->
+              <path id="body-brazo-l" d="M24 92 Q18 120 22 145 Q30 148 36 145 Q34 120 38 94 Z" fill="#1e1e2e" stroke="#333" stroke-width="1" class="muscle-region" data-muscle="Brazos"/>
+              <path id="body-brazo-r" d="M136 92 Q142 120 138 145 Q130 148 124 145 Q126 120 122 94 Z" fill="#1e1e2e" stroke="#333" stroke-width="1" class="muscle-region" data-muscle="Brazos"/>
+              <!-- Forearms -->
+              <path d="M22 148 Q18 172 22 190 Q28 192 34 190 Q34 172 36 148 Z" fill="#1e1e2e" stroke="#333" stroke-width="1"/>
+              <path d="M138 148 Q142 172 138 190 Q132 192 126 190 Q126 172 124 148 Z" fill="#1e1e2e" stroke="#333" stroke-width="1"/>
+              <!-- Abs/Core -->
+              <path id="body-core" d="M45 102 Q60 110 80 112 Q100 110 115 102 L112 158 Q98 165 80 166 Q62 165 48 158 Z" fill="#1e1e2e" stroke="#333" stroke-width="1" class="muscle-region" data-muscle="Core"/>
+              <!-- Espalda (back — shown as overlay hint) -->
+              <!-- Quads/Piernas -->
+              <path id="body-pierna-l" d="M48 160 Q44 200 46 240 Q56 248 66 244 Q64 204 62 162 Z" fill="#1e1e2e" stroke="#333" stroke-width="1" class="muscle-region" data-muscle="Piernas"/>
+              <path id="body-pierna-r" d="M112 160 Q116 200 114 240 Q104 248 94 244 Q96 204 98 162 Z" fill="#1e1e2e" stroke="#333" stroke-width="1" class="muscle-region" data-muscle="Piernas"/>
+              <!-- Calves -->
+              <path d="M46 244 Q44 272 48 295 Q56 300 64 296 Q62 272 66 244 Z" fill="#1e1e2e" stroke="#333" stroke-width="1"/>
+              <path d="M114 244 Q116 272 112 295 Q104 300 96 296 Q98 272 94 244 Z" fill="#1e1e2e" stroke="#333" stroke-width="1"/>
+              <!-- Groin/hip -->
+              <path d="M62 160 Q70 168 80 168 Q90 168 98 160 L95 188 Q88 196 80 197 Q72 196 65 188 Z" fill="#1e1e2e" stroke="#333" stroke-width="1"/>
+            </svg>
+          </div>
+          <div id="muscle-bars" class="muscle-bars-list"></div>
+        </div>
+      </div>
+
+      <!-- Progress graphs -->
+      <div class="section-card">
+        <div class="sc-header">
+          <span class="sc-title">Volumen semanal</span>
+        </div>
+        <canvas id="vol-chart" height="120"></canvas>
+      </div>
+
+      <!-- Personal Records -->
+      <div class="section-card">
+        <div class="sc-header">
+          <span class="sc-title">Récords personales (1RM est.)</span>
+        </div>
+        <div id="pr-list" class="pr-list"></div>
+      </div>
+
+      <!-- Measures -->
+      <div class="section-card">
+        <div class="sc-header">
+          <span class="sc-title">Medidas corporales</span>
+          <button class="sc-action" onclick="App.openMeasureForm()">+ Añadir</button>
+        </div>
+        <canvas id="weight-chart" height="110" style="margin-bottom:12px"></canvas>
+        <div id="measure-list" class="measure-list"></div>
+      </div>
+
+      <!-- Recent workouts on profile -->
+      <div class="section-card">
+        <div class="sc-header">
+          <span class="sc-title">Sesiones recientes</span>
+        </div>
+        <div id="recent-list" class="recent-list"></div>
+      </div>
+    </section>
+
+    <!-- ══ RUTINAS ══ -->
+    <section id="page-routines" class="page">
+      <div id="routine-list" class="routine-list"></div>
+    </section>
+
+    <!-- ══ ENTRENAR ══ -->
+    <section id="page-workout" class="page">
+      <!-- Idle -->
+      <div id="workout-idle">
+        <div class="start-card">
+          <h2 class="start-title">Comenzar entrenamiento</h2>
+          <button class="btn-start-empty" onclick="App.startEmpty()">
+            + Entrenamiento vacío
+          </button>
+        </div>
+        <div class="quick-start-section">
+          <p class="qs-label">MIS RUTINAS</p>
+          <div id="quick-routines" class="quick-routines"></div>
+        </div>
+      </div>
+      <!-- Live session (injected by JS) -->
+      <div id="workout-live" class="hidden"></div>
+    </section>
+
+    <!-- ══ HISTORIAL ══ -->
+    <section id="page-history" class="page">
+      <div id="history-list" class="history-list"></div>
+    </section>
+
+    <!-- ══ SOCIAL (feed) ══ -->
+    <section id="page-social" class="page">
+      <div class="social-empty">
+        <div class="social-empty-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <h3>Feed de amigos</h3>
+        <p>Aquí aparecerán los entrenamientos de las personas que sigues.</p>
+        <div id="feed-list" class="feed-list"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottomnav">
+    <button class="bn-btn active" data-page="profile" onclick="App.nav('profile',this)">
+      <svg class="bn-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span class="bn-lbl">Perfil</span>
+    </button>
+    <button class="bn-btn" data-page="routines" onclick="App.nav('routines',this)">
+      <svg class="bn-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      <span class="bn-lbl">Rutinas</span>
+    </button>
+    <button class="bn-btn bn-center" data-page="workout" onclick="App.nav('workout',this)">
+      <svg class="bn-ic" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      <span class="bn-lbl">Entrenar</span>
+    </button>
+    <button class="bn-btn" data-page="history" onclick="App.nav('history',this)">
+      <svg class="bn-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      <span class="bn-lbl">Historial</span>
+    </button>
+    <button class="bn-btn" data-page="social" onclick="App.nav('social',this)">
+      <svg class="bn-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <span class="bn-lbl">Social</span>
+    </button>
+  </nav>
+</div>
+
+<!-- ══════════════ MODALS ══════════════ -->
+
+<!-- SETTINGS -->
+<div id="modal-settings" class="overlay hidden">
+  <div class="sheet">
+    <div class="sheet-drag"></div>
+    <div class="sheet-head"><h3>Configuración</h3><button class="x-btn" onclick="App.close('modal-settings')">✕</button></div>
+    <div class="sheet-body">
+      <div class="sgroup">
+        <div class="srow">
+          <span class="slbl">Nombre</span>
+          <input type="text" id="cfg-name" class="sinline" placeholder="Tu nombre"/>
+        </div>
+        <div class="srow">
+          <span class="slbl">Usuario</span>
+          <input type="text" id="cfg-handle" class="sinline" placeholder="@usuario"/>
+        </div>
+        <div class="srow">
+          <span class="slbl">Unidad de peso</span>
+          <select id="cfg-unit" class="sinline" onchange="App.setUnit(this.value)">
+            <option value="kg">kg</option>
+            <option value="lb">lb</option>
+          </select>
+        </div>
+        <div class="srow">
+          <span class="slbl">Descanso por defecto</span>
+          <div style="display:flex;align-items:center;gap:4px">
+            <input type="number" id="cfg-rest" class="sinline" style="width:60px" value="90" min="10" max="600"/>
+            <span class="unit-lbl">seg</span>
+          </div>
+        </div>
+        <div class="srow">
+          <span class="slbl">Peso de barra (kg)</span>
+          <input type="number" id="cfg-bar" class="sinline" style="width:60px" value="20" min="0" max="50"/>
+        </div>
+      </div>
+      <button class="btn-save" onclick="App.saveSettings()">Guardar cambios</button>
+      <div class="sdivider"></div>
+      <button class="btn-destructive" onclick="App.clearData()">Borrar todos los datos</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT PROFILE -->
+<div id="modal-profile" class="overlay hidden">
+  <div class="sheet">
+    <div class="sheet-drag"></div>
+    <div class="sheet-head"><h3>Editar perfil</h3><button class="x-btn" onclick="App.close('modal-profile')">✕</button></div>
+    <div class="sheet-body">
+      <label class="flbl">Nombre</label>
+      <input type="text" id="ep-name" class="finput"/>
+      <label class="flbl">Usuario</label>
+      <input type="text" id="ep-handle" class="finput"/>
+      <label class="flbl">Bio</label>
+      <textarea id="ep-bio" class="finput ftextarea" rows="3" placeholder="Cuéntanos sobre ti…"></textarea>
+      <button class="btn-primary w100" onclick="App.saveProfile()">Guardar perfil</button>
+    </div>
+  </div>
+</div>
+
+<!-- NEW / EDIT ROUTINE -->
+<div id="modal-routine" class="overlay hidden">
+  <div class="sheet sheet-tall">
+    <div class="sheet-drag"></div>
+    <div class="sheet-head">
+      <h3 id="routine-modal-h">Nueva rutina</h3>
+      <button class="x-btn" onclick="App.close('modal-routine')">✕</button>
+    </div>
+    <div class="sheet-body">
+      <input type="text" id="rf-name" class="finput" placeholder="Nombre de la rutina"/>
+      <textarea id="rf-notes" class="finput ftextarea" rows="2" placeholder="Notas…"></textarea>
+      <div class="inline-hdr">
+        <span class="flbl" style="margin:0">Ejercicios</span>
+        <button class="btn-inline-add" onclick="App.openPicker('routine')">+ Añadir ejercicio</button>
+      </div>
+      <div id="rf-exlist" class="rf-exlist"></div>
+      <button class="btn-primary w100" onclick="App.saveRoutine()">Guardar rutina</button>
+    </div>
+  </div>
+</div>
+
+<!-- EXERCISE PICKER -->
+<div id="modal-picker" class="overlay hidden">
+  <div class="sheet sheet-tall">
+    <div class="sheet-drag"></div>
+    <div class="sheet-head">
+      <h3>Ejercicios</h3>
+      <button class="x-btn" onclick="App.close('modal-picker')">✕</button>
+    </div>
+    <div class="sheet-body" style="padding-top:10px">
+      <div class="picker-search-row">
+        <div class="search-box">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="pk-search" class="search-inp" placeholder="Buscar ejercicio…" oninput="App.filterPicker()"/>
+        </div>
+        <select id="pk-muscle" class="sel-sm" onchange="App.filterPicker()">
+          <option value="">Todos</option>
+          <option value="Pecho">Pecho</option>
+          <option value="Espalda">Espalda</option>
+          <option value="Piernas">Piernas</option>
+          <option value="Hombros">Hombros</option>
+          <option value="Brazos">Brazos</option>
+          <option value="Core">Core</option>
+          <option value="Cardio">Cardio</option>
+          <option value="Glúteos">Glúteos</option>
+        </select>
+      </div>
+      <select id="pk-equip" class="sel-sm w100 mb8" onchange="App.filterPicker()">
+        <option value="">Todo el equipo</option>
+        <option value="Barra">Barra</option>
+        <option value="Mancuernas">Mancuernas</option>
+        <option value="Máquina">Máquina</option>
+        <option value="Polea">Polea</option>
+        <option value="Peso corporal">Peso corporal</option>
+        <option value="Kettlebell">Kettlebell</option>
+        <option value="Otros">Otros</option>
+      </select>
+      <div id="pk-list" class="pk-list"></div>
+      <button class="btn-outline w100" onclick="App.openCreateEx()">+ Crear ejercicio personalizado</button>
+    </div>
+  </div>
+</div>
+
+<!-- CREATE EXERCISE -->
+<div id="modal-create-ex" class="overlay hidden">
+  <div class="sheet">
+    <div class="sheet-drag"></div>
+    <div class="sheet-head"><h3>Nuevo ejercicio</h3><button class="x-btn" onclick="App.close('modal-create-ex')">✕</button></div>
+    <div class="sheet-body">
+      <label class="flbl">Nombre del ejercicio</label>
+      <input type="text" id="ce-name" class="finput" placeholder="Ej. Curl en banco inclinado"/>
+      <label class="flbl">Grupo muscular</label>
+      <select id="ce-muscle" class="finput">
+        <option value="Pecho">Pecho</option>
+        <option value="Espalda">Espalda</option>
+        <option value="Piernas">Piernas</option>
+        <option value="Hombros">Hombros</option>
+        <option value="Brazos">Brazos</option>
+        <option value="Glúteos">Glúteos</option>
+        <option value="Core">Core</option>
+        <option value="Cardio">Cardio</option>
+      </select>
+      <label class="flbl">Equipamiento</label>
+      <select id="ce-equip" class="finput">
+        <option value="Barra">Barra</option>
+        <option value="Mancuernas">Mancuernas</option>
+        <option value="Máquina">Máquina</option>
+        <option value="Polea">Polea</option>
+        <option value="Peso corporal">Peso corporal</option>
+        <option value="Kettlebell">Kettlebell</option>
+        <option value="Otros">Otros</option>
+      </select>
+      <label class="flbl">Tipo de seguimiento</label>
+      <select id="ce-type" class="finput">
+        <option value="weight_reps">Peso + Reps</option>
+        <option value="bodyweight_reps">Peso corporal + Reps</option>
+        <option value="duration">Duración</option>
+        <option value="reps_only">Solo Reps</option>
+      </select>
+      <button class="btn-primary w100" onclick="App.saveCustomEx()">Crear ejercicio</button>
+    </div>
+  </div>
+</div>
+
+<!-- EXERCISE DETAIL / PROGRESS -->
+<div id="modal-ex-detail" class="overlay hidden">
+  <div class="sheet sheet-tall">
+    <div class="sheet-drag"></div>
+    <div class="sheet-head">
+      <div>
+        <h3 id="exd-name">Ejercicio</h3>
+        <p id="exd-meta" class="sheet-sub"></p>
+      </div>
+      <button class="x-btn" onclick="App.close('modal-ex-detail')">✕</button>
+    </div>
+    <div class="sheet-body">
+      <!-- Graph tabs -->
+      <div class="graph-tabs">
+        <button class="gtab active" onclick="App.switchExGraph('volume',this)">Volumen</button>
+        <button class="gtab" onclick="App.switchExGraph('best_weight',this)">Mejor peso</button>
+        <button class="gtab" onclick="App.switchExGraph('reps',this)">Reps</button>
+        <button class="gtab" onclick="App.switchExGraph('1rm',this)">1RM est.</button>
+      </div>
+      <canvas id="ex-progress-chart" height="140" style="margin-bottom:16px"></canvas>
+      <h4 class="sh4">Historial</h4>
+      <div id="exd-history" class="exd-history"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MEASURE FORM -->
+<div id="modal-measure" class="overlay hidden">
+  <div class="sheet">
+    <div class="sheet-drag"></div>
+    <div class="sheet-head"><h3>Registrar medidas</h3><button class="x-btn" onclick="App.close('modal-measure')">✕</button></div>
+    <div class="sheet-body">
+      <label class="flbl">Fecha</label>
+      <input type="date" id="m-date" class="finput"/>
+      <div class="measure-grid">
+        <div><label class="flbl">Peso (kg)</label><input type="number" id="m-weight" class="finput" step="0.1" placeholder="75.5"/></div>
+        <div><label class="flbl">% Grasa</label><input type="number" id="m-fat" class="finput" step="0.1" placeholder="18.0"/></div>
+        <div><label class="flbl">Cintura (cm)</label><input type="number" id="m-waist" class="finput" step="0.5"/></div>
+        <div><label class="flbl">Cadera (cm)</label><input type="number" id="m-hip" class="finput" step="0.5"/></div>
+        <div><label class="flbl">Pecho (cm)</label><input type="number" id="m-chest" class="finput" step="0.5"/></div>
+        <div><label class="flbl">Hombros (cm)</label><input type="number" id="m-shoulders" class="finput" step="0.5"/></div>
+        <div><label class="flbl">Bíceps (cm)</label><input type="number" id="m-bicep" class="finput" step="0.5"/></div>
+        <div><label class="flbl">Antebrazo (cm)</label><input type="number" id="m-forearm" class="finput" step="0.5"/></div>
+        <div><label class="flbl">Muslo (cm)</label><input type="number" id="m-thigh" class="finput" step="0.5"/></div>
+        <div><label class="flbl">Pantorrilla (cm)</label><input type="number" id="m-calf" class="finput" step="0.5"/></div>
+        <div><label class="flbl">Cuello (cm)</label><input type="number" id="m-neck" class="finput" step="0.5"/></div>
+      </div>
+      <button class="btn-primary w100" onclick="App.saveMeasure()">Guardar medidas</button>
+    </div>
+  </div>
+</div>
+
+<!-- PLATE CALCULATOR -->
+<div id="modal-plates" class="overlay hidden">
+  <div class="sheet">
+    <div class="sheet-drag"></div>
+    <div class="sheet-head"><h3>Calculadora de discos</h3><button class="x-btn" onclick="App.close('modal-plates')">✕</button></div>
+    <div class="sheet-body">
+      <label class="flbl">Peso total objetivo</label>
+      <div class="plate-inp-row">
+        <input type="number" id="pl-target" class="finput" placeholder="100" oninput="App.calcPlates()" style="flex:1"/>
+        <span class="unit-lbl" id="pl-unit">kg</span>
+      </div>
+      <p class="field-hint" id="pl-bar-hint">Barra olímpica: 20 kg</p>
+      <div id="pl-result" class="pl-result"></div>
+    </div>
+  </div>
+</div>
+
+<!-- WORKOUT DETAIL (history) -->
+<div id="modal-wdetail" class="overlay hidden">
+  <div class="sheet sheet-tall">
+    <div class="sheet-drag"></div>
+    <div class="sheet-head">
+      <div><h3 id="wd-title">Sesión</h3><p id="wd-date" class="sheet-sub"></p></div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <button class="icon-sm-btn" onclick="App.copyWorkout()" title="Repetir sesión">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+        </button>
+        <button class="x-btn" onclick="App.close('modal-wdetail')">✕</button>
+      </div>
+    </div>
+    <div class="sheet-body" id="wd-body"></div>
+  </div>
+</div>
+
+<!-- CALENDAR -->
+<div id="modal-calendar" class="overlay hidden">
+  <div class="sheet sheet-tall">
+    <div class="sheet-drag"></div>
+    <div class="sheet-head"><h3>Calendario</h3><button class="x-btn" onclick="App.close('modal-calendar')">✕</button></div>
+    <div class="sheet-body">
+      <div class="cal-nav">
+        <button class="cal-nav-btn" onclick="App.calPrev()">‹</button>
+        <span id="cal-month-label" class="cal-month-label"></span>
+        <button class="cal-nav-btn" onclick="App.calNext()">›</button>
+      </div>
+      <div class="cal-grid-head">
+        <span>D</span><span>L</span><span>M</span><span>X</span><span>J</span><span>V</span><span>S</span>
+      </div>
+      <div id="cal-grid" class="cal-grid"></div>
+      <div id="cal-day-detail" class="cal-day-detail"></div>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
